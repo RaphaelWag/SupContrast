@@ -345,6 +345,7 @@ def main():
             val_loss = validate(val_loader, model, criterion, opt, epoch)
             print(epoch, val_loss)
             if (val_loss < best_loss) and opt.save_best:
+                best_loss = val_loss
                 save_file = os.path.join(
                     opt.save_folder, 'ckpt_best.pth')
                 save_model(model, optimizer, opt, epoch, save_file)
