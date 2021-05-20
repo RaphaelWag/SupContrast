@@ -59,8 +59,6 @@ def parse_option():
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
-    parser.add_argument('--p_jitt', type=float, default=0, help='probability for colour jitter')
-    parser.add_argument('--p_grey', type=float, default=0, help='probability for grey transform')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -151,10 +149,6 @@ def set_loader(opt):
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(size=opt.size, scale=(0.2, 1.)),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomApply([
-            transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)
-        ], p=opt.p_jitt),
-        transforms.RandomGrayscale(p=opt.p_grey),
         transforms.ToTensor(),
         normalize,
     ])

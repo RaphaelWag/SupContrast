@@ -28,6 +28,8 @@ def parse_option():
                         help='print frequency')
     parser.add_argument('--save_freq', type=int, default=50,
                         help='save frequency')
+    parser.add_argument('--save_best', action='store_true',
+                        help='saving best model on val loss')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
@@ -50,7 +52,13 @@ def parse_option():
     # model dataset
     parser.add_argument('--model', type=str, default='resnet50')
     parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'cifar100'], help='dataset')
+                        choices=['cifar10', 'cifar100', 'path'], help='dataset')
+    parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
+    parser.add_argument('--n_cls', type=int, default=None, help='number of classes')
+    parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
+    parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
+    parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
+    parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -62,9 +70,17 @@ def parse_option():
                         help='path to pre-trained model')
 
     opt = parser.parse_args()
+    # check if dataset is path that passed required arguments
+    if opt.dataset == 'path':
+        assert opt.data_folder is not None \
+                and opt.mean is not None \
+                and opt.std is not None \
+                and opt.n_class is not None
+
 
     # set the path according to the environment
-    opt.data_folder = './datasets/'
+    if opt.data_folder is None:
+        opt.data_folder = './datasets/'
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
@@ -94,6 +110,8 @@ def parse_option():
         opt.n_cls = 10
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
+    elif opt.dataset == 'path':
+        pass
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -157,7 +175,7 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
 
         # update metric
         losses.update(loss.item(), bsz)
-        acc1, acc5 = accuracy(output, labels, topk=(1, 5))
+        acc1, acc5 = accuracy(output, labels, topk=(1, min(5, opt.n_cls)))
         top1.update(acc1[0], bsz)
 
         # SGD
@@ -205,7 +223,7 @@ def validate(val_loader, model, classifier, criterion, opt):
 
             # update metric
             losses.update(loss.item(), bsz)
-            acc1, acc5 = accuracy(output, labels, topk=(1, 5))
+            acc1, acc5 = accuracy(output, labels, topk=(1, min(5, opt.n_cls)))
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
@@ -251,8 +269,10 @@ def main():
 
         # eval for one epoch
         loss, val_acc = validate(val_loader, model, classifier, criterion, opt)
+        print(epoch, val_acc)
         if val_acc > best_acc:
             best_acc = val_acc
+
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
