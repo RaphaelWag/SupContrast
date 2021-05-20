@@ -30,6 +30,7 @@ def parse_option():
                         help='print frequency')
     parser.add_argument('--save_freq', type=int, default=50,
                         help='save frequency')
+    parser.add_argument('--save_best', action='store_true', help='saving best model')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size')
     parser.add_argument('--num_workers', type=int, default=16,
@@ -71,15 +72,14 @@ def parse_option():
     parser.add_argument('--trial', type=str, default='0',
                         help='id for recording multiple runs')
 
-
     opt = parser.parse_args()
 
     # check if dataset is path that passed required arguments
     if opt.dataset == 'path':
         assert opt.data_folder is not None \
-            and opt.mean is not None \
-            and opt.std is not None \
-            and opt.n_cls is not None
+               and opt.mean is not None \
+               and opt.std is not None \
+               and opt.n_cls is not None
 
         # set the path according to the environment
     if opt.data_folder is None:
@@ -92,7 +92,7 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = 'SupCE_{}_{}_lr_{}_decay_{}_bsz_{}_trial_{}'.\
+    opt.model_name = 'SupCE_{}_{}_lr_{}_decay_{}_bsz_{}_trial_{}'. \
         format(opt.dataset, opt.model, opt.learning_rate, opt.weight_decay,
                opt.batch_size, opt.trial)
 
@@ -180,9 +180,9 @@ def set_loader(opt):
                                         transform=val_transform)
     elif opt.dataset == 'path':
         train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train',
-                                            transform=train_transform)
+                                             transform=train_transform)
         val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val',
-                                            transform=val_transform)
+                                           transform=val_transform)
     else:
         raise ValueError(opt.dataset)
 
@@ -260,8 +260,8 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
                   'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'loss {loss.val:.3f} ({loss.avg:.3f})\t'
                   'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                   epoch, idx + 1, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses, top1=top1))
+                epoch, idx + 1, len(train_loader), batch_time=batch_time,
+                data_time=data_time, loss=losses, top1=top1))
             sys.stdout.flush()
 
     return losses.avg, top1.avg
@@ -295,13 +295,13 @@ def validate(val_loader, model, criterion, opt):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if (idx+1) % opt.print_freq == 0:
+            if (idx + 1) % opt.print_freq == 0:
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                       idx, len(val_loader), batch_time=batch_time,
-                       loss=losses, top1=top1))
+                    idx, len(val_loader), batch_time=batch_time,
+                    loss=losses, top1=top1))
 
     print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
     return losses.avg, top1.avg
@@ -346,9 +346,10 @@ def main():
 
         if val_acc > best_acc:
             best_acc = val_acc
-            save_file = os.path.join(
-                opt.save_folder, 'ckpt_best.pth')
-            save_model(model, optimizer, opt, epoch, save_file)
+            if opt.save_best:
+                save_file = os.path.join(
+                    opt.save_folder, 'ckpt_best.pth')
+                save_model(model, optimizer, opt, epoch, save_file)
 
         if epoch % opt.save_freq == 0:
             save_file = os.path.join(
