@@ -76,7 +76,7 @@ def parse_option():
         assert opt.data_folder is not None \
                 and opt.mean is not None \
                 and opt.std is not None \
-                and opt.n_class is not None
+                and opt.n_cls is not None
 
 
     # set the path according to the environment
