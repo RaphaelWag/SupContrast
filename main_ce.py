@@ -346,6 +346,9 @@ def main():
 
         if val_acc > best_acc:
             best_acc = val_acc
+            save_file = os.path.join(
+                opt.save_folder, 'ckpt_best.pth')
+            save_model(model, optimizer, opt, epoch, save_file)
 
         if epoch % opt.save_freq == 0:
             save_file = os.path.join(
