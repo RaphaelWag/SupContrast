@@ -82,8 +82,8 @@ def parse_option():
     # check if dataset is path that passed required arguments
     if opt.dataset == 'path':
         assert opt.data_folder is not None \
-            and opt.mean is not None \
-            and opt.std is not None
+               and opt.mean is not None \
+               and opt.std is not None
 
     # set the path according to the environment
     if opt.data_folder is None:
@@ -96,7 +96,7 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = '{}_{}_{}_lr_{}_decay_{}_bsz_{}_temp_{}_trial_{}'.\
+    opt.model_name = '{}_{}_{}_lr_{}_decay_{}_bsz_{}_temp_{}_trial_{}'. \
         format(opt.method, opt.dataset, opt.model, opt.learning_rate,
                opt.weight_decay, opt.batch_size, opt.temp, opt.trial)
 
@@ -163,17 +163,25 @@ def set_loader(opt):
                                           transform=TwoCropTransform(train_transform),
                                           download=True)
     elif opt.dataset == 'path':
-        train_dataset = datasets.ImageFolder(root=opt.data_folder,
-                                            transform=TwoCropTransform(train_transform))
+        train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train',
+                                             transform=TwoCropTransform(train_transform))
+        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val',
+                                           transform=TwoCropTransform(train_transform))
     else:
         raise ValueError(opt.dataset)
 
     train_sampler = None
+    val_loader = None
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
         num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
+    if opt.dataset == 'path':
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
+            num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
 
-    return train_loader
+
+    return train_loader, val_loader
 
 
 def set_model(opt):
@@ -245,18 +253,68 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
                   'BT {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'loss {loss.val:.3f} ({loss.avg:.3f})'.format(
-                   epoch, idx + 1, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses))
+                epoch, idx + 1, len(train_loader), batch_time=batch_time,
+                data_time=data_time, loss=losses))
             sys.stdout.flush()
 
     return losses.avg
 
 
+def validate(val_loader, model, criterion, opt, epoch):
+    """validation"""
+    model.eval()
+
+    batch_time = AverageMeter()
+    data_time = AverageMeter()
+    val_losses = AverageMeter()
+
+    with torch.no_grad():
+        for idx, (images, labels) in enumerate(val_loader):
+            data_time.update(time.time() - end)
+
+            images = torch.cat([images[0], images[1]], dim=0)
+            if torch.cuda.is_available():
+                images = images.cuda(non_blocking=True)
+                labels = labels.cuda(non_blocking=True)
+            bsz = labels.shape[0]
+
+            # compute loss
+            features = model(images)
+            f1, f2 = torch.split(features, [bsz, bsz], dim=0)
+            features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
+            if opt.method == 'SupCon':
+                loss = criterion(features, labels)
+            elif opt.method == 'SimCLR':
+                loss = criterion(features)
+            else:
+                raise ValueError('contrastive method not supported: {}'.
+                                 format(opt.method))
+
+            # update metric
+            val_losses.update(loss.item(), bsz)
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            # print info
+            if (idx + 1) % opt.print_freq == 0:
+                print('Train: [{0}][{1}/{2}]\t'
+                      'BT {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                      'loss {loss.val:.3f} ({loss.avg:.3f})'.format(
+                    epoch, idx + 1, len(val_loader), batch_time=batch_time,
+                    data_time=data_time, loss=val_losses))
+                sys.stdout.flush()
+    return val_losses.avg
+
+
 def main():
+    best_loss = 100000000000000000
     opt = parse_option()
 
     # build data loader
-    train_loader = set_loader(opt)
+    train_loader, val_loader = set_loader(opt)
 
     # build model and criterion
     model, criterion = set_model(opt)
@@ -280,6 +338,13 @@ def main():
         # tensorboard logger
         logger.log_value('loss', loss, epoch)
         logger.log_value('learning_rate', optimizer.param_groups[0]['lr'], epoch)
+        if opt.dataset == 'path':
+            val_loss = validate(val_loader, model, criterion, opt, epoch)
+            print(epoch, val_loss)
+            if (val_loss < best_loss) and opt.save_best:
+                save_file = os.path.join(
+                    opt.save_folder, 'ckpt_best.pth')
+                save_model(model, optimizer, opt, epoch, save_file)
 
         if epoch % opt.save_freq == 0:
             save_file = os.path.join(
