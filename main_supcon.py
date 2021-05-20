@@ -285,15 +285,15 @@ def validate(val_loader, model, criterion, opt, epoch):
             f1, f2 = torch.split(features, [bsz, bsz], dim=0)
             features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
             if opt.method == 'SupCon':
-                loss = criterion(features, labels)
+                val_loss = criterion(features, labels)
             elif opt.method == 'SimCLR':
-                loss = criterion(features)
+                val_loss = criterion(features)
             else:
                 raise ValueError('contrastive method not supported: {}'.
                                  format(opt.method))
 
             # update metric
-            val_losses.update(loss.item(), bsz)
+            val_losses.update(val_loss.item(), bsz)
 
             # measure elapsed time
             batch_time.update(time.time() - end)
