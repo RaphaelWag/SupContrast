@@ -174,9 +174,9 @@ def set_loader(opt):
                                         transform=val_transform)
     elif opt.dataset == 'path':
         train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train',
-                                            transform=train_transform(train_transform))
+                                            transform=train_transform)
         val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val',
-                                            transform=val_transform(train_transform))
+                                            transform=val_transform)
     else:
         raise ValueError(opt.dataset)
 
