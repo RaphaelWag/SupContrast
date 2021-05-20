@@ -67,6 +67,8 @@ def parse_option():
 
     parser.add_argument('--ckpt', type=str, default='',
                         help='path to pre-trained model')
+    parser.add_argument('--trial', type=str, default='0',
+                        help='id for recording multiple runs')
 
     opt = parser.parse_args()
     # check if dataset is path that passed required arguments
