@@ -51,6 +51,7 @@ def parse_option():
 
     # model dataset
     parser.add_argument('--model', type=str, default='resnet50')
+    parser.add_argument('--n_cls', type=int, default=None)
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'path'], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
@@ -75,7 +76,8 @@ def parse_option():
     if opt.dataset == 'path':
         assert opt.data_folder is not None \
             and opt.mean is not None \
-            and opt.std is not None
+            and opt.std is not None \
+            and opt.n_cls is not None
 
         # set the path according to the environment
     if opt.data_folder is None:
@@ -121,6 +123,8 @@ def parse_option():
         opt.n_cls = 10
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
+    elif opt.dataset == 'path':
+        pass
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -181,7 +185,7 @@ def set_loader(opt):
         train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
         num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
     val_loader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=256, shuffle=False,
+        val_dataset, batch_size=opt.batch_size, shuffle=False,
         num_workers=8, pin_memory=True)
 
     return train_loader, val_loader
