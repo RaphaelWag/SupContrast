@@ -282,7 +282,7 @@ def validate(val_loader, model, criterion, opt):
 
             # update metric
             losses.update(loss.item(), bsz)
-            acc1, acc5 = accuracy(output, labels, topk=(1, 5))
+            acc1, acc5 = accuracy(output, labels, topk=(1, min(opt.n_cls, 5)))
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
