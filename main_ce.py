@@ -192,7 +192,7 @@ def set_loader(opt):
         num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=opt.batch_size, shuffle=False,
-        num_workers=8, pin_memory=True)
+        num_workers=opt.num_workers, pin_memory=True)
 
     return train_loader, val_loader
 
@@ -340,6 +340,7 @@ def main():
 
         # evaluation
         loss, val_acc = validate(val_loader, model, criterion, opt)
+        print(epoch, val_acc, loss)
         logger.log_value('val_loss', loss, epoch)
         logger.log_value('val_acc', val_acc, epoch)
 
