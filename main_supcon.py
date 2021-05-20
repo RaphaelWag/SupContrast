@@ -270,6 +270,7 @@ def validate(val_loader, model, criterion, opt, epoch):
     data_time = AverageMeter()
     val_losses = AverageMeter()
 
+    end = time.time()
     with torch.no_grad():
         for idx, (images, labels) in enumerate(val_loader):
             data_time.update(time.time() - end)
