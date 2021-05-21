@@ -60,6 +60,8 @@ def parse_option():
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
+    parser.add_argument('--head', type=str, default='mlp', choices=['mpl', 'linear'],
+                        help='head used in resnet model')
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
@@ -187,7 +189,7 @@ def set_loader(opt):
 
 
 def set_model(opt):
-    model = SupConResNet(name=opt.model)
+    model = SupConResNet(name=opt.model, head=opt.head)
     criterion = SupConLoss(temperature=opt.temp)
 
     # enable synchronized Batch Normalization
