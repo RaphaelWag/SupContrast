@@ -65,7 +65,9 @@ def parse_option():
     # data augmentation
     parser.add_argument('--crop_size', type=int, default=320, help='parameter for RandomResizedCrop')
     parser.add_argument('--crop_scale', type=str, help='crop scale for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--crop_ratio', type=str, help='crop ratio for RandomResizedCrop in form of str tuple')
     parser.add_argument('--degrees', type=int, help='limit for degrees used in random rotation augmentation')
+
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
@@ -94,6 +96,7 @@ def parse_option():
         assert opt.std is not None
         assert opt.degrees is not None
         assert opt.crop_scale is not None
+        assert opt.crop_ratio is not None
 
     # set the path according to the environment
     if opt.data_folder is None:
@@ -150,12 +153,13 @@ def set_loader(opt):
         mean = eval(opt.mean)
         std = eval(opt.std)
         crop_scale = eval(opt.crop_scale)
+        crop_ratio = eval(opt.crop_ratio)
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=opt.size, scale=crop_scale),
+        transforms.RandomResizedCrop(size=opt.size, scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
