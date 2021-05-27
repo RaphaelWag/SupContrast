@@ -159,7 +159,7 @@ def set_loader(opt):
     normalize = transforms.Normalize(mean=mean, std=std)
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=opt.size, scale=crop_scale, ratio=crop_ratio),
+        transforms.RandomResizedCrop(size=opt.crop_size, scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
