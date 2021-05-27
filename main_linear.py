@@ -55,9 +55,14 @@ def parse_option():
                         choices=['cifar10', 'cifar100', 'path'], help='dataset')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
     parser.add_argument('--n_cls', type=int, default=None, help='number of classes')
-    parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
+
+    # data augmentation
+    parser.add_argument('--crop_size', type=int, default=320, help='parameter for RandomResizedCrop')
+    parser.add_argument('--crop_scale', type=str, help='crop scale for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--crop_ratio', type=str, help='crop ratio for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--degrees', type=int, help='limit for degrees used in random rotation augmentation')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -73,10 +78,14 @@ def parse_option():
     opt = parser.parse_args()
     # check if dataset is path that passed required arguments
     if opt.dataset == 'path':
-        assert opt.data_folder is not None \
-                and opt.mean is not None \
-                and opt.std is not None \
-                and opt.n_cls is not None
+        assert opt.data_folder is not None
+        assert opt.mean is not None
+        assert opt.std is not None
+        assert opt.n_cls is not None
+        assert opt.degrees is not None
+        assert opt.crop_scale is not None
+        assert opt.crop_ratio is not None
+
 
 
     # set the path according to the environment
