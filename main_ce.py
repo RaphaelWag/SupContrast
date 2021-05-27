@@ -58,7 +58,11 @@ def parse_option():
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
-    parser.add_argument('--size', type=int, default=32, help='parameter for RandomResizedCrop')
+
+    # data augmentation
+    parser.add_argument('--crop_size', type=int, default=320, help='parameter for RandomResizedCrop')
+    parser.add_argument('--crop_scale', type=str, help='crop scale for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--degrees', type=int, help='limit for degrees used in random rotation augmentation')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -74,10 +78,12 @@ def parse_option():
 
     # check if dataset is path that passed required arguments
     if opt.dataset == 'path':
-        assert opt.data_folder is not None \
-               and opt.mean is not None \
-               and opt.std is not None \
-               and opt.n_cls is not None
+        assert opt.data_folder is not None
+        assert opt.mean is not None
+        assert opt.std is not None
+        assert opt.n_cls is not None
+        assert opt.degrees is not None
+        assert opt.crop_scale is not None
 
         # set the path according to the environment
     if opt.data_folder is None:
@@ -142,13 +148,19 @@ def set_loader(opt):
     elif opt.dataset == 'path':
         mean = eval(opt.mean)
         std = eval(opt.std)
+        crop_scale = eval(opt.crop_scale)
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=opt.size, scale=(0.2, 1.)),
+        transforms.RandomResizedCrop(size=opt.size, scale=crop_scale),
         transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(degrees=opt.degrees),
+        transforms.RandomApply(
+            transforms.RandomChoice(
+                [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
+                 transforms.Grayscale(num_output_channels=3)]), p=0.66),
         transforms.ToTensor(),
         normalize,
     ])
