@@ -162,7 +162,7 @@ def set_loader(opt):
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
             [transforms.RandomChoice(
-                [transforms.ColorJitter(0.45, 0.45, 0.45, 0.2),
+                [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
                  transforms.Grayscale(num_output_channels=3)])], p=0.66),
         transforms.ToTensor(),
         normalize,
