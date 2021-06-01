@@ -10,7 +10,7 @@ import torch.backends.cudnn as cudnn
 
 from main_ce import set_loader
 from util import AverageMeter
-from util import adjust_learning_rate, warmup_learning_rate, accuracy
+from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
 from util import set_optimizer
 from networks.resnet_big import SupConResNet, LinearClassifier
 
@@ -229,11 +229,13 @@ def validate(val_loader, model, classifier, criterion, opt):
 
             # forward
             output = classifier(model.encoder(images))
+
             loss = criterion(output, labels)
 
             # update metric
             losses.update(loss.item(), bsz)
             acc1, acc5 = accuracy(output, labels, topk=(1, min(5, opt.n_cls)))
+            conf_mat = confusion_matrix(output, labels)
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
