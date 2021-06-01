@@ -219,6 +219,7 @@ def validate(val_loader, model, classifier, criterion, opt):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
+    conf_mat = torch.zeros(opt.n_cls, opt.n_cls)
 
     with torch.no_grad():
         end = time.time()
@@ -235,7 +236,7 @@ def validate(val_loader, model, classifier, criterion, opt):
             # update metric
             losses.update(loss.item(), bsz)
             acc1, acc5 = accuracy(output, labels, topk=(1, min(5, opt.n_cls)))
-            conf_mat = confusion_matrix(output, labels)
+            conf_mat = confusion_matrix(conf_mat, output, labels)
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
@@ -251,6 +252,10 @@ def validate(val_loader, model, classifier, criterion, opt):
                        loss=losses, top1=top1))
 
     print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
+    print('Confusion Matrix')
+    print(conf_mat)
+    print('Class Accuracy')
+    print(conf_mat.diag()/conf_mat.sum(1))
     return losses.avg, top1.avg
 
 
