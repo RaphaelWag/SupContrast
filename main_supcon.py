@@ -156,6 +156,7 @@ def set_loader(opt):
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
 
+
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(size=(240,320), scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
@@ -163,7 +164,8 @@ def set_loader(opt):
         transforms.RandomApply(
             [transforms.RandomChoice(
                 [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
-                 transforms.Grayscale(num_output_channels=3)])], p=0.66),
+                 #transforms.Grayscale(num_output_channels=3)
+                  ])], p=0.5),
         transforms.ToTensor(),
         normalize,
     ])
