@@ -49,11 +49,13 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-def confusion_matrix(output, target):
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    print(pred)
-    print(target)
+def confusion_matrix(output, target, topk=(1,)):
+    with torch.no_grad():
+        maxk = max(topk)
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        print(pred)
+        print(target)
 
 
 def adjust_learning_rate(args, optimizer, epoch):
