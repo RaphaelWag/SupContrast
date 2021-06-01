@@ -285,6 +285,7 @@ def validate(val_loader, model, criterion, opt):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
+    conf_mat = torch.zeros(opt.n_cls, opt.n_cls)
 
     with torch.no_grad():
         end = time.time()
