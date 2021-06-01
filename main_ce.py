@@ -12,7 +12,7 @@ import torch.backends.cudnn as cudnn
 from torchvision import transforms, datasets
 
 from util import AverageMeter
-from util import adjust_learning_rate, warmup_learning_rate, accuracy
+from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
 from util import set_optimizer, save_model
 from networks.resnet_big import SupCEResNet
 
@@ -300,6 +300,7 @@ def validate(val_loader, model, criterion, opt):
             # update metric
             losses.update(loss.item(), bsz)
             acc1, acc5 = accuracy(output, labels, topk=(1, min(opt.n_cls, 5)))
+            conf_mat = confusion_matrix(conf_mat, output, labels)
             top1.update(acc1[0], bsz)
 
             # measure elapsed time
@@ -315,6 +316,10 @@ def validate(val_loader, model, criterion, opt):
                     loss=losses, top1=top1))
 
     print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
+    print('Confusion Matrix')
+    print(conf_mat)
+    print('Class Accuracy')
+    print(conf_mat.diag() / conf_mat.sum(1))
     return losses.avg, top1.avg
 
 
