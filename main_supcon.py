@@ -165,7 +165,7 @@ def set_loader(opt):
             [transforms.RandomChoice(
                 [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
                  #transforms.Grayscale(num_output_channels=3)
-                  ])], p=0.5),
+                  ])], p=0.7),
         transforms.ToTensor(),
         normalize,
     ])
