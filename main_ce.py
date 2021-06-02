@@ -164,7 +164,7 @@ def set_loader(opt):
             [transforms.RandomChoice(
                 [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
                  #transforms.Grayscale(num_output_channels=3)
-                  ])], p=0.5),
+                  ])], p=0.7),
         transforms.ToTensor(),
         normalize,
     ])
@@ -192,7 +192,7 @@ def set_loader(opt):
     elif opt.dataset == 'path':
         train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train',
                                              transform=train_transform)
-        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_hard',
+        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_easy',
                                            transform=val_transform)
     else:
         raise ValueError(opt.dataset)
