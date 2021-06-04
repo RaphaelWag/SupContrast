@@ -322,10 +322,10 @@ def validate(val_loader, model, criterion, opt):
     print(conf_mat)
     print('Class Accuracy')
     class_acc = conf_mat.diag() / conf_mat.sum(1)
-    class_acc.cpu()
+    class_acc.cpu().numpy()
     print(class_acc)
-    acc = top1.avg
-    acc.cpu()
+    acc = top1.avg.cpu().numpy()
+
     results = open('results.txt', 'a+')
     results.write(str(acc) + ' ' + str(class_acc[0]) + ' ' + str(class_acc[1]) + ' ' + str(class_acc[2]) + ' ' + str(
         class_acc[3]) + '\n')
@@ -337,6 +337,7 @@ def validate(val_loader, model, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
+    os.remove('results.txt')
 
     # build data loader
     train_loader, val_loader = set_loader(opt)
