@@ -8,6 +8,7 @@ import math
 import torch
 import torch.backends.cudnn as cudnn
 
+
 from main_ce import set_loader
 from util import AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
@@ -253,7 +254,10 @@ def validate(val_loader, model, classifier, criterion, opt):
     print('Confusion Matrix')
     print(conf_mat)
     print('Class Accuracy')
-    print(conf_mat.diag() / conf_mat.sum(1))
+    class_acc = conf_mat.diag() / conf_mat.sum(1)
+    class_acc.cpu()
+    print(class_acc)
+
     return losses.avg, top1.avg
 
 

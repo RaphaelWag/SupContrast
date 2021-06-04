@@ -320,8 +320,9 @@ def validate(val_loader, model, criterion, opt):
     print('Confusion Matrix')
     print(conf_mat)
     print('Class Accuracy')
-    print(conf_mat.diag() / conf_mat.sum(1))
-    return losses.avg, top1.avg
+    class_acc = conf_mat.diag() / conf_mat.sum(1)
+    class_acc.cpu()
+    print(class_acc)
 
 
 def main():
