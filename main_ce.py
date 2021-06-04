@@ -5,6 +5,7 @@ import sys
 import argparse
 import time
 import math
+import numpy as np
 
 import tensorboard_logger as tb_logger
 import torch
@@ -157,20 +158,20 @@ def set_loader(opt):
     normalize = transforms.Normalize(mean=mean, std=std)
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=(240,320), scale=crop_scale, ratio=crop_ratio),
+        transforms.RandomResizedCrop(size=(240, 320), scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
             [transforms.RandomChoice(
                 [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
-                 #transforms.Grayscale(num_output_channels=3)
-                  ])], p=0.5),
+                 # transforms.Grayscale(num_output_channels=3)
+                 ])], p=0.5),
         transforms.ToTensor(),
         normalize,
     ])
 
     val_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=opt.crop_size, scale=(0.99,1), ratio=(0.99,1)),
+        transforms.RandomResizedCrop(size=opt.crop_size, scale=(0.99, 1), ratio=(0.99, 1)),
         transforms.ToTensor(),
         normalize,
     ])
@@ -323,6 +324,12 @@ def validate(val_loader, model, criterion, opt):
     class_acc = conf_mat.diag() / conf_mat.sum(1)
     class_acc.cpu()
     print(class_acc)
+    acc = top1.avg
+    acc.cpu()
+    results = open('results.txt', 'a+')
+    results.write(str(acc) + ' ' + str(class_acc[0]) + ' ' + str(class_acc[1]) + ' ' + str(class_acc[2]) + ' ' + str(
+        class_acc[3]) + '\n')
+    results.close()
 
     return losses.avg, top1.avg
 
@@ -383,6 +390,9 @@ def main():
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
+    results = np.loadtxt('results.txt')
+    print(results)
+    print(results.shape)
 
 if __name__ == '__main__':
     main()
