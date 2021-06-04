@@ -324,6 +324,8 @@ def validate(val_loader, model, criterion, opt):
     class_acc.cpu()
     print(class_acc)
 
+    return losses.avg, top1.avg
+
 
 def main():
     best_acc = 0
