@@ -5,14 +5,13 @@ import sys
 import argparse
 import time
 import math
-import numpy as np
 
 import tensorboard_logger as tb_logger
 import torch
 import torch.backends.cudnn as cudnn
 from torchvision import transforms, datasets
 
-from util import AverageMeter
+from util import AverageMeter, plot_results
 from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
 from util import set_optimizer, save_model
 from networks.resnet_big import SupCEResNet
@@ -327,8 +326,10 @@ def validate(val_loader, model, criterion, opt):
     acc = top1.avg.cpu().numpy()
 
     results = open('results.txt', 'a+')
-    results.write(str(acc) + ' ' + str(class_acc[0]) + ' ' + str(class_acc[1]) + ' ' + str(class_acc[2]) + ' ' + str(
-        class_acc[3]) + '\n')
+    results.write(str(acc) + ' ')
+    for res in class_acc:
+        results.write(str(res) + ' ')
+    results.write('\n')
     results.close()
 
     return losses.avg, top1.avg
@@ -391,9 +392,8 @@ def main():
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
-    results = np.loadtxt('results.txt')
-    print(results)
-    print(results.shape)
+    plot_results('cross_entropy.png')
+
 
 if __name__ == '__main__':
     main()

@@ -10,7 +10,7 @@ import torch.backends.cudnn as cudnn
 
 
 from main_ce import set_loader
-from util import AverageMeter
+from util import AverageMeter, plot_results
 from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
 from util import set_optimizer
 from networks.resnet_big import SupConResNet, LinearClassifier
@@ -293,7 +293,7 @@ def main():
             best_acc = val_acc
 
     print('best accuracy: {:.2f}'.format(best_acc))
-
+    plot_results('main_linear_{}.png'.format(opt.ckpt.slpit('_')[-1][:4]))
 
 if __name__ == '__main__':
     main()

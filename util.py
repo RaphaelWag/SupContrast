@@ -4,10 +4,13 @@ import math
 import numpy as np
 import torch
 import torch.optim as optim
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class TwoCropTransform:
     """Create two crops of the same image"""
+
     def __init__(self, transform):
         self.transform = transform
 
@@ -17,6 +20,7 @@ class TwoCropTransform:
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self):
         self.reset()
 
@@ -48,6 +52,7 @@ def accuracy(output, target, topk=(1,)):
             correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
+
 
 def confusion_matrix(conf_mat, output, target, topk=(1,)):
     with torch.no_grad():
@@ -103,3 +108,16 @@ def save_model(model, optimizer, opt, epoch, save_file):
     }
     torch.save(state, save_file)
     del state
+
+
+def plot_results(filename):
+    plt.cla()
+    plt.clf()
+    plt.close()
+    results = np.loadtxt('results.txt').T
+
+    plt.plot(results[0], color='red', label='total acc')
+    for i in range(1, len(results)):
+        plt.plot(results[i], label='class {}'.format(i))
+
+    plt.savefig(filename)
