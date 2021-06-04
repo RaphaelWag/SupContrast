@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import sys
 import argparse
 import time
@@ -7,7 +8,6 @@ import math
 
 import torch
 import torch.backends.cudnn as cudnn
-
 
 from main_ce import set_loader
 from util import AverageMeter, plot_results
@@ -254,9 +254,17 @@ def validate(val_loader, model, classifier, criterion, opt):
     print('Confusion Matrix')
     print(conf_mat)
     print('Class Accuracy')
-    class_acc = conf_mat.diag() / conf_mat.sum(1)
-    class_acc.cpu()
+    class_acc = (conf_mat.diag() / conf_mat.sum(1)).cpu().numpy()
+
     print(class_acc)
+    acc = top1.avg.cpu().numpy()
+
+    results = open('results_linear.txt', 'a+')
+    results.write(str(acc) + ' ')
+    for res in class_acc:
+        results.write(str(res) + ' ')
+    results.write('\n')
+    results.close()
 
     return losses.avg, top1.avg
 
@@ -264,7 +272,8 @@ def validate(val_loader, model, classifier, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
-
+    if os.path.exists('results_linear.txt'):
+        os.remove('results_linear.txt')
     # build data loader
     train_loader, val_loader = set_loader(opt)
 
@@ -293,7 +302,8 @@ def main():
             best_acc = val_acc
 
     print('best accuracy: {:.2f}'.format(best_acc))
-    plot_results('main_linear_{}.png'.format(opt.ckpt.slpit('_')[-1][:4]))
+    plot_results('results_linear.txt', 'main_linear_{}.png'.format(opt.ckpt.slpit('_')[-1][:4]))
+
 
 if __name__ == '__main__':
     main()

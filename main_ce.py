@@ -338,7 +338,8 @@ def validate(val_loader, model, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
-    os.remove('results.txt')
+    if os.path.exists('results.txt'):
+        os.remove('results.txt')
 
     # build data loader
     train_loader, val_loader = set_loader(opt)
@@ -392,7 +393,7 @@ def main():
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
-    plot_results('cross_entropy.png')
+    plot_results('results.txt', 'cross_entropy.png')
 
 
 if __name__ == '__main__':

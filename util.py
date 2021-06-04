@@ -110,11 +110,11 @@ def save_model(model, optimizer, opt, epoch, save_file):
     del state
 
 
-def plot_results(filename):
+def plot_results(results_file, filename):
     plt.cla()
     plt.clf()
     plt.close()
-    results = np.loadtxt('results.txt').T
+    results = np.loadtxt(results_file).T
 
     plt.plot(results[0], color='red', label='total acc')
     for i in range(1, len(results)):
