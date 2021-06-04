@@ -321,8 +321,8 @@ def validate(val_loader, model, criterion, opt):
     print('Confusion Matrix')
     print(conf_mat)
     print('Class Accuracy')
-    class_acc = conf_mat.diag() / conf_mat.sum(1)
-    class_acc.cpu().numpy()
+    class_acc = (conf_mat.diag() / conf_mat.sum(1)).cpu().numpy()
+
     print(class_acc)
     acc = top1.avg.cpu().numpy()
 
