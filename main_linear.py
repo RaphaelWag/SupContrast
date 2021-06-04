@@ -302,7 +302,7 @@ def main():
             best_acc = val_acc
 
     print('best accuracy: {:.2f}'.format(best_acc))
-    plot_results('results_linear.txt', 'main_linear_{}.png'.format(opt.ckpt.split('_')[-1][:4]))
+    plot_results('results_linear.txt', 'main_linear_{}.png'.format(opt.ckpt.split('_')[-1][:-4]))
 
 
 if __name__ == '__main__':
