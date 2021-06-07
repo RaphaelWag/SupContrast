@@ -259,7 +259,7 @@ def validate(val_loader, model, classifier, criterion, opt):
     print(class_acc)
     acc = top1.avg.cpu().numpy()
 
-    results = open('results_linear.txt', 'a+')
+    results = open('results_linear_{}.txt'.format(opt.ckpt.split('_')[-1][:-4]), 'a+')
     results.write(str(acc) + ' ')
     for res in class_acc:
         results.write(str(res) + ' ')
@@ -272,8 +272,8 @@ def validate(val_loader, model, classifier, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
-    if os.path.exists('results_linear.txt'):
-        os.remove('results_linear.txt')
+    if os.path.exists('results_linear_{}.txt'.format(opt.ckpt.split('_')[-1][:-4])):
+        os.remove('results_linear_{}.txt'.format(opt.ckpt.split('_')[-1][:-4]))
     # build data loader
     train_loader, val_loader = set_loader(opt)
 
@@ -302,7 +302,8 @@ def main():
             best_acc = val_acc
 
     print('best accuracy: {:.2f}'.format(best_acc))
-    plot_results('results_linear.txt', 'main_linear_{}.png'.format(opt.ckpt.split('_')[-1][:-4]))
+    plot_results('results_linear_{}.txt'.format(opt.ckpt.split('_')[-1][:-4]),
+                 'main_linear_{}.png'.format(opt.ckpt.split('_')[-1][:-4]))
 
 
 if __name__ == '__main__':
