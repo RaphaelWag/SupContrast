@@ -115,11 +115,13 @@ def plot_results(results_file, filename):
     plt.clf()
     plt.close()
     results = np.loadtxt(results_file).T
-    label = ['', '100', '120', '70', '90']
+    label = ['total acc', '100', '120', '70', '90']
 
-    plt.plot(results[0], color='red', label='total acc')
+    plt.plot(results[0], color='red', label=label[0])
     for i in range(1, len(results)):
         plt.plot(results[i] * 100, label=label[i])
     plt.legend()
+    plt.grid(b=True)
+    plt.ylim(-1, 105)
 
     plt.savefig(filename)
