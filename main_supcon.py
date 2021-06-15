@@ -66,7 +66,6 @@ def parse_option():
     parser.add_argument('--crop_ratio', type=str, help='crop ratio for RandomResizedCrop in form of str tuple')
     parser.add_argument('--degrees', type=int, help='limit for degrees used in random rotation augmentation')
 
-
     # method
     parser.add_argument('--method', type=str, default='SupCon',
                         choices=['SupCon', 'SimCLR'], help='choose method')
@@ -156,9 +155,8 @@ def set_loader(opt):
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
 
-
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=(240,320), scale=crop_scale, ratio=crop_ratio),
+        transforms.RandomResizedCrop(size=(240, 320), scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
@@ -268,7 +266,7 @@ def main():
     opt = parse_option()
 
     # build data loader
-    train_loader= set_loader(opt)
+    train_loader = set_loader(opt)
 
     # build model and criterion
     model, criterion = set_model(opt)

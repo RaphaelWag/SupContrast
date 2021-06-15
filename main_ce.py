@@ -170,7 +170,6 @@ def set_loader(opt):
     ])
 
     val_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=opt.crop_size, scale=(0.99, 1), ratio=(0.99, 1)),
         transforms.ToTensor(),
         normalize,
     ])
