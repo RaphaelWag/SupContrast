@@ -161,11 +161,7 @@ def set_loader(opt):
         transforms.RandomResizedCrop(size=(240,320), scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
-        transforms.RandomApply(
-            [transforms.RandomChoice(
-                [transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
-                 #transforms.Grayscale(num_output_channels=3)
-                  ])], p=0.5),
+        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
         transforms.ToTensor(),
         normalize,
     ])
