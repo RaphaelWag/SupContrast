@@ -98,10 +98,14 @@ def parse_option():
         opt.data_folder = './datasets/'
     opt.trial = 0
     opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
-    if os.path.exists(opt.experiment_folder):
-        opt.trial = int(opt.experiment_folder.split('_')[-1][:-1]) + 1
-        print('TRIAL', opt.trial)
-        opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+    folder_exists = True
+    while folder_exists:
+        if os.path.exists(opt.experiment_folder):
+            opt.trial = int(opt.experiment_folder.split('_')[-1][:-1]) + 1
+            print('TRIAL', opt.trial)
+            opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+        else:
+            folder_exists = False
 
     opt.model_path = os.path.join(opt.experiment_folder, 'model')
     opt.metrics_path = os.path.join(opt.experiment_folder, 'metrics')
@@ -365,7 +369,7 @@ def main():
     logger = tb_logger.Logger(logdir=opt.tb_folder, flush_secs=2)
 
     # save run parameters
-    with open(os.path.join(opt.metrics_folder, 'opt.yaml'), 'w+') as f:
+    with open(os.path.join(opt.metrics_folder, 'opt.yaml'), 'w') as f:
         yaml.dump(vars(opt), f, sort_keys=False)
 
     # training routine
