@@ -80,8 +80,6 @@ def parse_option():
                         help='using synchronized batch normalization')
     parser.add_argument('--warm', action='store_true',
                         help='warm-up for large batch training')
-    parser.add_argument('--trial', type=str, default='0',
-                        help='id for recording multiple runs')
 
     opt = parser.parse_args()
 
@@ -98,15 +96,21 @@ def parse_option():
     # set the path according to the environment
     if opt.data_folder is None:
         opt.data_folder = './datasets/'
-    opt.model_path = './runs/{}_{}/model'.format(opt.model_name, opt.trial)
-    opt.metrics_path = './runs/{}_{}/metrics'.format(opt.model_name, opt.trial)
-    opt.tb_path = './runs/{}_{}/tensorboard'.format(opt.model_name, opt.trial)
+    opt.trial = 0
+    opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+    if os.path.exists(opt.experiment_folder):
+        opt.trial = int(opt.experiment_folder.split('_')[:-1]) + 1
+        print('TRIAL', opt.trial)
+        opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+
+    opt.model_path = os.path.join(opt.experiment_folder, 'model')
+    opt.metrics_path = os.path.join(opt.experiment_folder, 'metrics')
+    opt.tb_path = os.path.join(opt.experiment_folder, 'tensorboard')
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
-
 
     # warm-up for large-batch training,
     if opt.batch_size > 256:
@@ -130,8 +134,8 @@ def parse_option():
         os.makedirs(opt.save_folder)
 
     opt.metrics_folder = opt.metrics_path
-    if not os.path.isdir(opt.save_folder):
-        os.makedirs(opt.save_folder)
+    if not os.path.isdir(opt.metrics_folder):
+        os.makedirs(opt.metrics_folder)
 
     if opt.dataset == 'cifar10':
         opt.n_cls = 10
@@ -361,8 +365,8 @@ def main():
     # tensorboard
     logger = tb_logger.Logger(logdir=opt.tb_folder, flush_secs=2)
 
-    #save run parameters
-    with open(os.path.join(opt.metrics_folder , 'opt.yaml'), 'w+') as f:
+    # save run parameters
+    with open(os.path.join(opt.metrics_folder, 'opt.yaml'), 'w+') as f:
         yaml.dump(vars(opt), f, sort_keys=False)
 
     # training routine
