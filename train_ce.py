@@ -351,10 +351,10 @@ def validate(val_loader, model, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
-    results_path = os.path.join(opt.metrics_folder, 'results.txt')
-    plot_path = os.path.join(opt.metrics_folder, 'cross_entropy.png')
-    if os.path.exists(results_path):
-        os.remove(results_path)
+    opt.results_path = os.path.join(opt.metrics_folder, 'results.txt')
+    opt.plot_path = os.path.join(opt.metrics_folder, 'cross_entropy.png')
+    if os.path.exists(opt.results_path):
+        os.remove(opt.results_path)
 
     # build data loader
     train_loader, val_loader = set_loader(opt)
@@ -413,7 +413,7 @@ def main():
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
-    plot_results(results_path, plot_path)
+    plot_results(opt.results_path, opt.plot_path)
 
 
 if __name__ == '__main__':
