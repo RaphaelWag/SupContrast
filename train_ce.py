@@ -9,6 +9,7 @@ import sys
 import argparse
 import time
 import math
+import yaml
 
 import tensorboard_logger as tb_logger
 import torch
@@ -359,6 +360,10 @@ def main():
 
     # tensorboard
     logger = tb_logger.Logger(logdir=opt.tb_folder, flush_secs=2)
+
+    #save run parameters
+    with open(os.path.join(opt.metrics_folder , 'opt.yaml'), 'w+') as f:
+        yaml.dump(vars(opt), f, sort_keys=False)
 
     # training routine
     for epoch in range(1, opt.epochs + 1):
