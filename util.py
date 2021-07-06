@@ -118,9 +118,9 @@ def plot_results(results_file, filename):
 
     plt.plot(results[0], color='red', label='total accuracy')
     for i in range(1, len(results)):
-        plt.plot(results[i] * 100, label='class {}'.format(i))
+        plt.plot(results[i], label='class {}'.format(i))
     plt.legend()
     plt.grid(b=True)
-    plt.ylim(-1, 105)
+    plt.ylim(-1, 1.05)
 
     plt.savefig(filename)

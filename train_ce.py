@@ -339,7 +339,7 @@ def validate(val_loader, model, criterion, opt):
     acc = top1.avg.cpu().numpy()
 
     results = open(opt.results_path, 'a+')
-    results.write(str(acc) + ' ')
+    results.write(str(acc * 0.01) + ' ')
     for res in class_acc:
         results.write(str(res) + ' ')
     results.write('\n')
