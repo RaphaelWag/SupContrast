@@ -174,10 +174,10 @@ def set_loader(opt):
         transforms.RandomResizedCrop(size=(240, 320), scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
-        #transforms.RandomApply(
-        #    [transforms.RandomChoice(
-        #        [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1), ]
-        #    )], p=0.5),
+        transforms.RandomApply(
+            [transforms.RandomChoice(
+                [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1), ]
+            )], p=0.5),
         transforms.ToTensor(),
         normalize,
     ])
@@ -203,9 +203,9 @@ def set_loader(opt):
                                         train=False,
                                         transform=val_transform)
     elif opt.dataset == 'path':
-        train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train',
+        train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train/',
                                              transform=train_transform)
-        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_easy',
+        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_easy/',
                                            transform=val_transform)
     else:
         raise ValueError(opt.dataset)
