@@ -102,7 +102,6 @@ def parse_option():
     while folder_exists:
         if os.path.exists(opt.experiment_folder):
             opt.trial = int(opt.experiment_folder.split('_')[-1][:-1]) + 1
-            print('TRIAL', opt.trial)
             opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
         else:
             folder_exists = False
