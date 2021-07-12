@@ -109,12 +109,13 @@ def save_model(model, optimizer, opt, epoch, save_file):
     torch.save(state, save_file)
     del state
 
-def save_model_strip(model, opt, epoch, save_file):
+def save_model_strip(model, opt, save_file):
     print('==> Saving...')
     state = {
-        'opt': opt,
+        'opt': None,
         'model': model.state_dict(),
-        'epoch': epoch,
+        'optimizer': None,
+        'epoch': -1,
     }
     torch.save(state, save_file)
     del state
