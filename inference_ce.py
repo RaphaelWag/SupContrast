@@ -44,6 +44,7 @@ def parse_option():
 
 
 def load_model(opt):
+    print('Loading Model')
     model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
     ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_best.pth')
     ckpt = torch.load(ckpt_path, map_location='cpu')
@@ -61,6 +62,7 @@ def load_model(opt):
 
 
 def validate(val_loader, model, opt):
+    print('Start Validation')
     """validation"""
     model.eval()
 
