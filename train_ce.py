@@ -18,7 +18,7 @@ from torchvision import transforms, datasets
 
 from util import AverageMeter, plot_results
 from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
-from util import set_optimizer, save_model
+from util import set_optimizer, save_model, save_model_strip
 from networks.resnet_big import SupCEResNet
 
 try:
@@ -408,7 +408,7 @@ def main():
     if opt.save_last:
         save_file = os.path.join(
             opt.save_folder, 'last.pth')
-        save_model(model, optimizer, opt, opt.epochs, save_file)
+        save_model_strip(model, save_file)
 
     print('best accuracy: {:.2f}'.format(best_acc))
 
