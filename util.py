@@ -109,6 +109,15 @@ def save_model(model, optimizer, opt, epoch, save_file):
     torch.save(state, save_file)
     del state
 
+def save_model_strip(model, opt, epoch, save_file):
+    print('==> Saving...')
+    state = {
+        'opt': opt,
+        'model': model.state_dict(),
+        'epoch': epoch,
+    }
+    torch.save(state, save_file)
+    del state
 
 def plot_results(results_file, filename):
     plt.cla()
