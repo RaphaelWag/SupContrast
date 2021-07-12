@@ -44,11 +44,16 @@ def parse_option():
 
 def load_model(opt):
     model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
+    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_best.pth')
+    ckpt = torch.load(ckpt_path, map_location='cpu')
+    state_dict = ckpt['model']
 
     if torch.cuda.is_available():
         if torch.cuda.device_count() > 1:
             model = torch.nn.DataParallel(model)
         model = model.cuda()
+
+    model.load_state_dict(state_dict)
 
     model.eval()
     return model
