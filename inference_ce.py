@@ -38,7 +38,8 @@ def parse_option():
     train_opt_path = os.path.join(opt.ckpt, 'metrics/opt.yaml')
     with open(train_opt_path) as f:
         train_opt = yaml.load(f, Loader=yaml.FullLoader)
-    opt = {**opt, **train_opt}  # concat dicts
+    # concat dicts and convert to Namespace
+    opt = argparse.Namespace(**{**vars(opt), **train_opt})
     return opt
 
 
