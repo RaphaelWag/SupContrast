@@ -92,14 +92,14 @@ def parse_option():
 
     # set the path according to the environment
     opt.trial = 0
-    opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+    opt.experiment_folder = '../runs/{}_{}/'.format(opt.model_name, opt.trial)
 
     # incrementally increase trial number
     folder_exists = True
     while folder_exists:
         if os.path.exists(opt.experiment_folder):
             opt.trial = int(opt.experiment_folder.split('_')[-1][:-1]) + 1
-            opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+            opt.experiment_folder = '../runs/{}_{}/'.format(opt.model_name, opt.trial)
         else:
             folder_exists = False
 
