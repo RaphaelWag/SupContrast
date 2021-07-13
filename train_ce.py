@@ -31,8 +31,6 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for training')
 
     parser.add_argument('--model_name', type=str, help='model name')
-    parser.add_argument('--print_freq', type=int, default=10,
-                        help='print frequency')
     parser.add_argument('--save_freq', type=int, default=50,
                         help='save frequency')
     parser.add_argument('--save_best', action='store_true', help='saving best model')
@@ -233,17 +231,6 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        # print info
-        if (idx + 1) % opt.print_freq == 0:
-            print('Train: [{0}][{1}/{2}]\t'
-                  'BT {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'DT {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                  'loss {loss.val:.3f} ({loss.avg:.3f})\t'
-                  'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                epoch, idx + 1, len(train_loader), batch_time=batch_time,
-                data_time=data_time, loss=losses, top1=top1))
-            sys.stdout.flush()
-
     return losses.avg, top1.avg
 
 
@@ -277,21 +264,8 @@ def validate(val_loader, model, criterion, opt):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if (idx + 1) % opt.print_freq == 0:
-                print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Acc@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                    idx, len(val_loader), batch_time=batch_time,
-                    loss=losses, top1=top1))
-
-    print(' * Acc@1 {top1.avg:.3f}'.format(top1=top1))
-    print('Confusion Matrix')
-    print(conf_mat)
-    print('Class Accuracy')
     class_acc = (conf_mat.diag() / conf_mat.sum(1)).cpu().numpy()
 
-    print(class_acc)
     acc = top1.avg.cpu().numpy()
 
     results = open(opt.results_path, 'a+')
@@ -301,7 +275,7 @@ def validate(val_loader, model, criterion, opt):
     results.write('\n')
     results.close()
 
-    return losses.avg, top1.avg
+    return losses.avg, top1.avg, conf_mat, class_acc
 
 
 def main():
@@ -336,8 +310,10 @@ def main():
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
         # evaluation
-        loss, val_acc = validate(val_loader, model, criterion, opt)
-        print(epoch, val_acc, loss)
+        loss, val_acc, conf_mat, class_acc = validate(val_loader, model, criterion, opt)
+        print('Validation Accuracy: {:.f}, Train Accuracy {:.f}'.format(val_acc, train_acc))
+        print('Validation Class Accuracy {}'.format(class_acc))
+        print('Validation confusion matrix {}'.format(conf_mat))
 
         if val_acc > best_acc:
             best_acc = val_acc
