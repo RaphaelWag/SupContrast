@@ -46,7 +46,7 @@ def parse_option():
 def load_model(opt):
     print('Loading Model')
     model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_best.pth')
+    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_best_strip.pth')
     ckpt = torch.load(ckpt_path, map_location='cpu')
     state_dict = ckpt['model']
 
