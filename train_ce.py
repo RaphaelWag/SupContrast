@@ -315,7 +315,7 @@ def main():
 
         # evaluation
         loss, val_acc, conf_mat, class_acc = validate(val_loader, model, criterion, opt)
-        print('Validation Accuracy: {:.f3}, Train Accuracy {:.f3}'.format(val_acc, train_acc))
+        print('Validation Accuracy: {:.3f}, Train Accuracy {:.3f}'.format(val_acc, train_acc))
         print('Validation Class Accuracy {}'.format(class_acc))
         print('Validation confusion matrix {}'.format(conf_mat))
 
