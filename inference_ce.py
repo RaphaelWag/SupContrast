@@ -25,9 +25,9 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for inference')
 
     # model
-    parser.add_argument('--ckpt', type=str, default=None,
+    parser.add_argument('--run', type=str, default=None,
                         help='path to pre-trained run folder')
-    parser.add_argument('--model', type=str, default='best',
+    parser.add_argument('--ckpt', type=str, default='best',
                         help='model that should be used from checkpoint, e.g. "best", "last", "epoch_50"')
     parser.add_argument('--save_path', type=str, default=None,
                         help='path where to save output')
@@ -38,7 +38,7 @@ def parse_option():
     assert opt.save_path is not None  # need to specify where to save output
 
     # load additional options from checkpoint
-    train_opt_path = os.path.join(opt.ckpt, 'metrics/opt.yaml')
+    train_opt_path = os.path.join(opt.run, 'metrics/opt.yaml')
     with open(train_opt_path) as f:
         train_opt = yaml.load(f, Loader=yaml.FullLoader)
     # concat dicts and convert to Namespace
@@ -49,7 +49,7 @@ def parse_option():
 def load_model(opt):
     print('Loading Model')
     model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_{}_strip.pth'.format(opt.model))
+    ckpt_path = os.path.join(opt.run, 'model/ckpt_{}_strip.pth'.format(opt.ckpt))
     ckpt = torch.load(ckpt_path, map_location='cpu')
     state_dict = ckpt['model']
 
@@ -117,7 +117,7 @@ def main():
 
     # build model
     model = load_model(opt)
-    softmax = torch.nn.Softmax()
+    softmax = torch.nn.Softmax(dim=1)
 
     # validate
     # validate(val_loader, model, opt)
