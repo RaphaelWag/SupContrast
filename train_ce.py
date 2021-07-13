@@ -11,14 +11,13 @@ import time
 import math
 import yaml
 
-import tensorboard_logger as tb_logger
 import torch
 import torch.backends.cudnn as cudnn
 from torchvision import transforms, datasets
 
 from util import AverageMeter, plot_results
 from util import adjust_learning_rate, warmup_learning_rate, accuracy, confusion_matrix
-from util import set_optimizer, save_model, save_model_strip
+from util import set_optimizer, save_model_strip
 from networks.resnet_big import SupCEResNet
 
 try:
@@ -39,17 +38,17 @@ def parse_option():
                         help='save frequency')
     parser.add_argument('--save_best', action='store_true', help='saving best model')
     parser.add_argument('--save_last', action='store_true', help='saving last model')
-    parser.add_argument('--batch_size', type=int, default=256,
+    parser.add_argument('--batch_size', type=int, default=32,
                         help='batch_size')
-    parser.add_argument('--num_workers', type=int, default=16,
+    parser.add_argument('--num_workers', type=int, default=8,
                         help='num of workers to use')
-    parser.add_argument('--epochs', type=int, default=500,
+    parser.add_argument('--epochs', type=int, default=600,
                         help='number of training epochs')
 
     # optimization
     parser.add_argument('--learning_rate', type=float, default=0.2,
                         help='learning rate')
-    parser.add_argument('--lr_decay_epochs', type=str, default='350,400,450',
+    parser.add_argument('--lr_decay_epochs', type=str, default='300,400,500',
                         help='where to decay lr, can be a list')
     parser.add_argument('--lr_decay_rate', type=float, default=0.1,
                         help='decay rate for learning rate')
@@ -59,19 +58,22 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet50')
+    parser.add_argument('--model', type=str, default='resnet18')
     parser.add_argument('--n_cls', type=int, default=None)
-    parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'cifar100', 'path'], help='dataset')
-    parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
-    parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
+    parser.add_argument('--mean', type=str, default='(0.5,0.5,0.5)',
+                        help='mean of dataset in path in form of str tuple')
+    parser.add_argument('--std', type=str, default='(0.5,0.5,0.5)',
+                        help='std of dataset in path in form of str tuple')
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
 
     # data augmentation
-    parser.add_argument('--crop_size', type=int, default=320, help='parameter for RandomResizedCrop')
-    parser.add_argument('--crop_scale', type=str, help='crop scale for RandomResizedCrop in form of str tuple')
-    parser.add_argument('--crop_ratio', type=str, help='crop ratio for RandomResizedCrop in form of str tuple')
-    parser.add_argument('--degrees', type=int, help='limit for degrees used in random rotation augmentation')
+    parser.add_argument('--crop_size', type=int, default='(240,320)', help='parameter for RandomResizedCrop')
+    parser.add_argument('--crop_scale', type=str, default='(0.95, 1.0)',
+                        help='crop scale for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--crop_ratio', type=str, default='(0.95, 1.05)',
+                        help='crop ratio for RandomResizedCrop in form of str tuple')
+    parser.add_argument('--degrees', type=int, default=15,
+                        help='limit for degrees used in random rotation augmentation')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -84,20 +86,16 @@ def parse_option():
     opt = parser.parse_args()
 
     # check if dataset is path that passed required arguments
-    if opt.dataset == 'path':
-        assert opt.data_folder is not None
-        assert opt.mean is not None
-        assert opt.std is not None
-        assert opt.n_cls is not None
-        assert opt.degrees is not None
-        assert opt.crop_scale is not None
-        assert opt.crop_ratio is not None
+    assert opt.data_folder is not None  # need to specifiy dataset path
+    assert opt.n_cls is not None  # need to specify number of classes
+    assert opt.crop_scale is not None
+    assert opt.crop_ratio is not None
 
     # set the path according to the environment
-    if opt.data_folder is None:
-        opt.data_folder = './datasets/'
     opt.trial = 0
     opt.experiment_folder = './runs/{}_{}/'.format(opt.model_name, opt.trial)
+
+    # incrementally increase trial number
     folder_exists = True
     while folder_exists:
         if os.path.exists(opt.experiment_folder):
@@ -108,7 +106,6 @@ def parse_option():
 
     opt.model_path = os.path.join(opt.experiment_folder, 'model')
     opt.metrics_path = os.path.join(opt.experiment_folder, 'metrics')
-    opt.tb_path = os.path.join(opt.experiment_folder, 'tensorboard')
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
@@ -128,10 +125,6 @@ def parse_option():
         else:
             opt.warmup_to = opt.learning_rate
 
-    opt.tb_folder = opt.tb_path
-    if not os.path.isdir(opt.tb_folder):
-        os.makedirs(opt.tb_folder)
-
     opt.save_folder = opt.model_path
     if not os.path.isdir(opt.save_folder):
         os.makedirs(opt.save_folder)
@@ -140,37 +133,21 @@ def parse_option():
     if not os.path.isdir(opt.metrics_folder):
         os.makedirs(opt.metrics_folder)
 
-    if opt.dataset == 'cifar10':
-        opt.n_cls = 10
-    elif opt.dataset == 'cifar100':
-        opt.n_cls = 100
-    elif opt.dataset == 'path':
-        pass
-    else:
-        raise ValueError('dataset not supported: {}'.format(opt.dataset))
-
     return opt
 
 
 def set_loader(opt):
     # construct data loader
-    if opt.dataset == 'cifar10':
-        mean = (0.4914, 0.4822, 0.4465)
-        std = (0.2023, 0.1994, 0.2010)
-    elif opt.dataset == 'cifar100':
-        mean = (0.5071, 0.4867, 0.4408)
-        std = (0.2675, 0.2565, 0.2761)
-    elif opt.dataset == 'path':
-        mean = eval(opt.mean)
-        std = eval(opt.std)
-        crop_scale = eval(opt.crop_scale)
-        crop_ratio = eval(opt.crop_ratio)
-    else:
-        raise ValueError('dataset not supported: {}'.format(opt.dataset))
+    mean = eval(opt.mean)
+    std = eval(opt.std)
+    crop_scale = eval(opt.crop_scale)
+    crop_ratio = eval(opt.crop_ratio)
+    crop_size = eval(opt.crop_size)
+
     normalize = transforms.Normalize(mean=mean, std=std)
 
     train_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=(240, 320), scale=crop_scale, ratio=crop_ratio),
+        transforms.RandomResizedCrop(size=crop_size, scale=crop_scale, ratio=crop_ratio),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
@@ -182,37 +159,19 @@ def set_loader(opt):
     ])
 
     val_transform = transforms.Compose([
-        transforms.RandomResizedCrop(size=(240, 320), scale=(0.99, 1), ratio=(0.99, 1)),
+        transforms.RandomResizedCrop(size=crop_size, scale=(0.99, 1), ratio=(0.99, 1)),
         transforms.ToTensor(),
         normalize,
     ])
 
-    if opt.dataset == 'cifar10':
-        train_dataset = datasets.CIFAR10(root=opt.data_folder,
-                                         transform=train_transform,
-                                         download=True)
-        val_dataset = datasets.CIFAR10(root=opt.data_folder,
-                                       train=False,
+    train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train/',
+                                         transform=train_transform)
+    val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_easy/',  # TODO: change to proper path
                                        transform=val_transform)
-    elif opt.dataset == 'cifar100':
-        train_dataset = datasets.CIFAR100(root=opt.data_folder,
-                                          transform=train_transform,
-                                          download=True)
-        val_dataset = datasets.CIFAR100(root=opt.data_folder,
-                                        train=False,
-                                        transform=val_transform)
-    elif opt.dataset == 'path':
-        train_dataset = datasets.ImageFolder(root=opt.data_folder + '/train/',
-                                             transform=train_transform)
-        val_dataset = datasets.ImageFolder(root=opt.data_folder + '/val_easy/',
-                                           transform=val_transform)
-    else:
-        raise ValueError(opt.dataset)
 
-    train_sampler = None
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
-        num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
+        train_dataset, batch_size=opt.batch_size, shuffle=True,
+        num_workers=opt.num_workers, pin_memory=True, sampler=None)
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=1, shuffle=False,
         num_workers=opt.num_workers, pin_memory=True)
@@ -364,9 +323,6 @@ def main():
     # build optimizer
     optimizer = set_optimizer(opt, model)
 
-    # tensorboard
-    logger = tb_logger.Logger(logdir=opt.tb_folder, flush_secs=2)
-
     # save run parameters
     with open(os.path.join(opt.metrics_folder, 'opt.yaml'), 'w') as f:
         yaml.dump(vars(opt), f, sort_keys=False)
@@ -381,16 +337,9 @@ def main():
         time2 = time.time()
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
-        # tensorboard logger
-        logger.log_value('train_loss', loss, epoch)
-        logger.log_value('train_acc', train_acc, epoch)
-        logger.log_value('learning_rate', optimizer.param_groups[0]['lr'], epoch)
-
         # evaluation
         loss, val_acc = validate(val_loader, model, criterion, opt)
         print(epoch, val_acc, loss)
-        logger.log_value('val_loss', loss, epoch)
-        logger.log_value('val_acc', val_acc, epoch)
 
         if val_acc > best_acc:
             best_acc = val_acc
@@ -407,7 +356,7 @@ def main():
     # save the last model
     if opt.save_last:
         save_file = os.path.join(
-            opt.save_folder, 'last.pth')
+            opt.save_folder, 'last_strip.pth')
         save_model_strip(model, save_file)
 
     print('best accuracy: {:.2f}'.format(best_acc))
