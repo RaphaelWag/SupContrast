@@ -101,7 +101,11 @@ def validate(val_loader, model, opt):
 def load_image(path, val_transforms):
     image = Image.open(path)
     image = val_transforms(image)
+    image = image.unsqueeze(0)
+    if torch.cuda.is_available():
+        image = image.float().cuda()
     return image
+
 
 
 def main():
@@ -112,6 +116,7 @@ def main():
 
     # build model
     model = load_model(opt)
+    softmax = torch.nn.Softmax()
 
     # validate
     # validate(val_loader, model, opt)
@@ -119,8 +124,9 @@ def main():
     # predict single image
     image = load_image('../images/val_easy/70/574.png', val_transforms)
     prediction = model(image)
+    probabilities = softmax(prediction)
     print('Made prediction')
-    print(prediction)
+    print(probabilities)
 
 if __name__ == '__main__':
     main()
