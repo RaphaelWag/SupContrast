@@ -27,6 +27,8 @@ def parse_option():
     # model
     parser.add_argument('--ckpt', type=str, default=None,
                         help='path to pre-trained run folder')
+    parser.add_argument('--model', type=str, default='best',
+                        help='model that should be used from checkpoint, e.g. "best", "last", "epoch_50"')
     parser.add_argument('--save_path', type=str, default=None,
                         help='path where to save output')
 
@@ -47,7 +49,7 @@ def parse_option():
 def load_model(opt):
     print('Loading Model')
     model = SupCEResNet(name=opt.model, num_classes=opt.n_cls)
-    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_best_strip.pth')
+    ckpt_path = os.path.join(opt.ckpt, 'model/ckpt_{}_strip.pth'.format(opt.model))
     ckpt = torch.load(ckpt_path, map_location='cpu')
     state_dict = ckpt['model']
 
@@ -107,7 +109,6 @@ def load_image(path, val_transforms):
     return image
 
 
-
 def main():
     opt = parse_option()
 
@@ -127,6 +128,7 @@ def main():
     probabilities = softmax(prediction)
     print('Made prediction')
     print(probabilities)
+
 
 if __name__ == '__main__':
     main()
