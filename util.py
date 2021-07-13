@@ -131,6 +131,6 @@ def plot_results(results_file, filename):
         plt.plot(results[i], label='class {}'.format(i))
     plt.legend()
     plt.grid(b=True)
-    plt.ylim(-1, 1.05)
+    plt.ylim(-0.05, 1.05)
 
     plt.savefig(filename)
