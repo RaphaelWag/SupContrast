@@ -9,6 +9,7 @@ import yaml
 
 import torch
 import torch.backends.cudnn as cudnn
+from PIL import Image
 from networks.resnet_big import SupCEResNet
 from train_ce import set_loader
 from util import AverageMeter, accuracy, confusion_matrix
@@ -97,18 +98,29 @@ def validate(val_loader, model, opt):
     print(class_acc)
 
 
+def load_image(path, val_transforms):
+    image = Image.open(path)
+    image = val_transforms(image)
+    return image
+
+
 def main():
     opt = parse_option()
 
     # build data loader
-    train_loader, val_loader = set_loader(opt)
+    train_loader, val_loader, val_transforms = set_loader(opt)
 
     # build model
     model = load_model(opt)
 
     # validate
-    validate(val_loader, model, opt)
+    # validate(val_loader, model, opt)
 
+    # predict single image
+    image = load_image('../images/val_easy/70/574.png', val_transforms)
+    prediction = model(image)
+    print('Made prediction')
+    print(prediction)
 
 if __name__ == '__main__':
     main()

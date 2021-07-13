@@ -172,7 +172,7 @@ def set_loader(opt):
         val_dataset, batch_size=1, shuffle=False,
         num_workers=opt.num_workers, pin_memory=True)
 
-    return train_loader, val_loader
+    return train_loader, val_loader, val_transform
 
 
 def set_model(opt):
@@ -287,7 +287,7 @@ def main():
         os.remove(opt.results_path)
 
     # build data loader
-    train_loader, val_loader = set_loader(opt)
+    train_loader, val_loader, _ = set_loader(opt)
 
     # build model and criterion
     model, criterion = set_model(opt)
