@@ -30,8 +30,7 @@ except ImportError:
 def parse_option():
     parser = argparse.ArgumentParser('argument for training')
 
-    parser.add_argument('--model_name', type=str, help='model name',
-                        default='test_model')
+    parser.add_argument('--model_name', type=str, help='model name')
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
     parser.add_argument('--save_freq', type=int, default=50,
@@ -86,10 +85,9 @@ def parse_option():
     opt = parser.parse_args()
 
     # check if dataset is path that passed required arguments
-    assert opt.data_folder is not None  # need to specifiy dataset path
+    assert opt.data_folder is not None  # need to specify dataset path
     assert opt.n_cls is not None  # need to specify number of classes
-    assert opt.crop_scale is not None
-    assert opt.crop_ratio is not None
+    assert opt.model_name is not None  # need to specify model name
 
     # set the path according to the environment
     opt.trial = 0
