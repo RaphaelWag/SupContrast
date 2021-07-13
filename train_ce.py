@@ -66,7 +66,7 @@ def parse_option():
     parser.add_argument('--data_folder', type=str, default=None, help='path to custom dataset')
 
     # data augmentation
-    parser.add_argument('--crop_size', type=int, default='(240,320)', help='parameter for RandomResizedCrop')
+    parser.add_argument('--crop_size', type=str, default='(240,320)', help='parameter for RandomResizedCrop')
     parser.add_argument('--crop_scale', type=str, default='(0.95, 1.0)',
                         help='crop scale for RandomResizedCrop in form of str tuple')
     parser.add_argument('--crop_ratio', type=str, default='(0.95, 1.05)',
