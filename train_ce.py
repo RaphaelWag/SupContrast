@@ -71,6 +71,9 @@ def parse_option():
                         help='crop ratio for RandomResizedCrop in form of str tuple')
     parser.add_argument('--degrees', type=int, default=15,
                         help='limit for degrees used in random rotation augmentation')
+    parser.add_argument('--p_jitter', type=float, default=0.5, help='probability for colour jitter augmentation')
+    parser.add_argument('--jitter', type=str, default='[0.4, 0.4, 0.4, 0.1]',
+                        help='parameters for colour jitter augmentation as list [brightness, contrast, saturation, hue]')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -139,6 +142,7 @@ def set_loader(opt):
     crop_scale = eval(opt.crop_scale)
     crop_ratio = eval(opt.crop_ratio)
     crop_size = eval(opt.crop_size)
+    jitter_args = eval(opt.jitter)
 
     normalize = transforms.Normalize(mean=mean, std=std)
 
@@ -148,8 +152,8 @@ def set_loader(opt):
         transforms.RandomRotation(degrees=opt.degrees),
         transforms.RandomApply(
             [transforms.RandomChoice(
-                [transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1), ]
-            )], p=0.5),
+                [transforms.ColorJitter(*jitter_args), ]
+            )], p=opt.p_jitter),
         transforms.ToTensor(),
         normalize,
     ])
